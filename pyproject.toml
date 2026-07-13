@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hospital-quality-de"
+version = "0.1.0"
+description = "Analysis of German federal hospital statistics (DESTATIS EVAS 23111): capacity, staffing, and regional disparities."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Simaak Haque Fahimuddin Sayed" }]
+license = { text = "MIT" }
+dependencies = [
+  "openpyxl>=3.1.0",
+  "pandas>=2.2.0",
+]
+
+[project.optional-dependencies]
+viz = [
+  "matplotlib>=3.8.0",
+  "streamlit>=1.36.0",
+  "altair>=5.3.0",
+]
+dev = [
+  "pytest>=8.2.0",
+  "ruff>=0.5.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hospital_quality"]
+
+[tool.ruff]
+src = ["src"]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP", "N", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["E501"]
+"scripts/**" = ["E501"]
+"dashboard/**" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"

@@ -1,0 +1,17 @@
+code,name_en,fte_total,fte_physicians,fte_nursing,beds,nursing_fte_per_bed,beds_per_nursing_fte
+HB,Bremen,9035.2,,3877.5,4131.0,0.939,1.07
+HH,Hamburg,28961.1,,11767.0,12846.0,0.916,1.09
+BE,Berlin,48439.6,,18262.3,20172.0,0.905,1.1
+SL,Saarland,13994.7,,5825.1,6645.0,0.877,1.14
+MV,Mecklenburg-Vorpommern,20766.0,,8793.29,10194.0,0.863,1.16
+SN,Saxony,47838.8,,20878.59,24718.0,0.845,1.18
+BW,Baden-Wuerttemberg,124096.9,,44234.5,52796.0,0.838,1.19
+BY,Bavaria,161577.29,,61859.0,74565.0,0.83,1.21
+HE,Hesse,66099.0,,28698.7,34837.0,0.824,1.21
+NI,Lower Saxony,82578.3,,32808.3,40585.0,0.808,1.24
+NW,North Rhine-Westphalia,228978.8,,90553.3,112610.0,0.804,1.24
+SH,Schleswig-Holstein,31225.0,,12288.7,15562.0,0.79,1.27
+TH,Thuringia,27988.8,,11913.6,15076.0,0.79,1.27
+RP,Rhineland-Palatinate,45140.0,,17831.59,23288.0,0.766,1.31
+BB,Brandenburg,24393.6,,11426.6,14970.0,0.763,1.31
+ST,Saxony-Anhalt,26184.2,,10487.7,13929.0,0.753,1.33

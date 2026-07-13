@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# Testing / tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+
+# The built database is regenerable from the raw workbook via scripts/run_etl.py
+data/processed/*.db
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/

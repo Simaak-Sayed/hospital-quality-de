@@ -1,0 +1,43 @@
+{
+  "period": {
+    "first_year": 1991,
+    "last_year": 2023
+  },
+  "hospitals": {
+    "first": 2411,
+    "last": 1874,
+    "pct_change": -22.3
+  },
+  "beds": {
+    "first": 665565,
+    "last": 476924,
+    "pct_change": -28.3
+  },
+  "cases": {
+    "first": 14576612,
+    "last": 17202130,
+    "pct_change": 18.0
+  },
+  "avg_length_of_stay_days": {
+    "first": 14.0,
+    "last": 7.2
+  },
+  "bed_occupancy_pct": {
+    "first": 84.1,
+    "last": 71.2
+  },
+  "beds_per_100k_2023": {
+    "highest_state": "Thuringia",
+    "highest_value": 708.8,
+    "lowest_state": "Baden-Wuerttemberg",
+    "lowest_value": 468.0,
+    "disparity_ratio": 1.51,
+    "national_mean": 589.0
+  },
+  "nursing_staffing_2023": {
+    "leanest_state": "Saxony-Anhalt",
+    "leanest_beds_per_nurse_fte": 1.33,
+    "richest_state": "Bremen",
+    "richest_beds_per_nurse_fte": 1.07
+  }
+}
