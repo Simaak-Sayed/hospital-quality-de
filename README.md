@@ -50,7 +50,13 @@ states around a national average of roughly 589.
 The pattern is not random. Several eastern states sit at the top, a legacy of a
 different hospital network, while some wealthy western states sit at the bottom.
 
-![Beds per 100,000 inhabitants by state](assets/beds_per_100k_by_state.png)
+<p align="center">
+  <img alt="Choropleth map of hospital beds per 100,000 inhabitants by German state" src="assets/map_beds_per_100k.png" width="440">
+  <img alt="Beds per 100,000 inhabitants by state" src="assets/beds_per_100k_by_state.png" width="440">
+</p>
+
+The Streamlit dashboard makes this map interactive: you can recolour it by ICU
+beds per capita or by nursing intensity and hover any state for its figures.
 
 ---
 
@@ -79,7 +85,7 @@ DESTATIS .xlsx  ->  parse.py  ->  tidy long records  ->  SQLite (star-ish schema
                                                               |
                                     analysis.py  ->  findings.json + CSVs + charts
                                                               |
-                                     Streamlit dashboard   +   Power BI model
+                              Streamlit dashboard (interactive map + charts)
 ```
 
 | Stage | Where | What it does |
@@ -87,7 +93,7 @@ DESTATIS .xlsx  ->  parse.py  ->  tidy long records  ->  SQLite (star-ish schema
 | Extract | `scripts/run_etl.py`, `src/hospital_quality/parse.py` | Reads the DESTATIS workbook's machine-readable sheets, handles German number formats and placeholder markers (a nil cell never silently becomes a zero) |
 | Model | `src/hospital_quality/build_db.py`, `sql` | Loads a long `observations` fact table and a `states` dimension (with population) into SQLite |
 | Analyse | `sql/queries/*.sql`, `src/hospital_quality/analysis.py` | Three reviewable SQL queries compute national trends, per-capita capacity, and staffing intensity; Python derives the headline numbers |
-| Present | `src/hospital_quality/charts.py`, `dashboard/app.py`, `powerbi/` | Static charts, an interactive Streamlit app, and Power BI-ready tables (`powerbi/*.csv`), a theme (`powerbi/theme.json`), and a build guide |
+| Present | `src/hospital_quality/charts.py`, `dashboard/app.py` | Static charts and an interactive Streamlit app with a choropleth map of Germany and the national trend and ranking views |
 
 ### The data-cleaning decisions that mattered
 
@@ -139,9 +145,11 @@ suite is fast and needs no download).
   cross-table joins, per-capita normalisation against a dimension table).
 - **Python**: a typed, tested, `ruff`-clean package (`pandas`, `openpyxl`,
   `sqlite3`, `matplotlib`).
+- **Data visualisation**: static charts and a choropleth map of Germany built
+  from GeoJSON boundaries without a heavyweight GIS stack, plus an interactive
+  Streamlit dashboard.
 - **Analysis and communication**: turning 37,000 raw observations into a handful
-  of defensible findings, and presenting them in static charts, an interactive
-  Streamlit dashboard, and a Power BI model.
+  of defensible findings and presenting them clearly.
 
 ---
 
@@ -151,6 +159,9 @@ suite is fast and needs no download).
   Krankenhaeuser* 2023, EVAS 23111. Public statistics, cited in-repo.
 - **Population**: Statistische Aemter des Bundes und der Laender, reference date
   31.12.2022.
+- **State boundaries**: `data/geo/bundeslaender.geo.json`, from the open
+  [deutschlandGeoJSON](https://github.com/isellsoap/deutschlandGeoJSON) project
+  (derived from official Bundesamt fuer Kartographie und Geodaesie data).
 
 Code is MIT licensed. The underlying statistics belong to their publishers and
 are used here under their terms for analysis and education.

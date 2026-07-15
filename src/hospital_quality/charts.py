@@ -7,19 +7,29 @@ headless in CI.
 
 from __future__ import annotations
 
+import json
+import math
 from pathlib import Path
 
 import matplotlib
 
 matplotlib.use("Agg")
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.patches import Polygon as MplPolygon
+
+from hospital_quality.reference import STATE_CODE
 
 INK = "#1f2933"
 ACCENT = "#2a6db2"
 ACCENT_2 = "#c0492f"
 ACCENT_3 = "#3f8f4f"
 GRID = "#dde3ea"
+
+# Repository default location of the federal-state boundary file.
+_DEFAULT_GEOJSON = Path(__file__).resolve().parents[2] / "data" / "geo" / "bundeslaender.geo.json"
 
 
 def _style(ax: plt.Axes) -> None:
@@ -103,6 +113,98 @@ def render_staffing(staffing: pd.DataFrame, out_dir: Path) -> None:
     plt.close(fig)
 
 
+def _exterior_rings(geometry: dict) -> list[list[list[float]]]:
+    """Yield the exterior ring(s) of a GeoJSON Polygon or MultiPolygon."""
+    kind = geometry.get("type")
+    coords = geometry.get("coordinates", [])
+    if kind == "Polygon":
+        return [coords[0]] if coords else []
+    if kind == "MultiPolygon":
+        return [poly[0] for poly in coords if poly]
+    return []
+
+
+def _largest_ring(rings: list[list[list[float]]]) -> list[list[float]]:
+    """Return the ring with the most points (a cheap proxy for the main landmass)."""
+    return max(rings, key=len) if rings else []
+
+
+def render_choropleth(
+    capacity: pd.DataFrame,
+    out_dir: Path,
+    value_col: str = "beds_per_100k",
+    title: str = "Hospital beds per 100,000 inhabitants (2023)",
+    cmap_name: str = "Blues",
+    filename: str = "map_beds_per_100k.png",
+    geojson_path: str | Path | None = None,
+) -> None:
+    """Render a choropleth map of the federal states shaded by ``value_col``.
+
+    The federal-state boundaries come from a GeoJSON file; each feature is drawn
+    as matplotlib polygons and filled from a sequential colour scale, so no
+    heavyweight GIS dependency is needed. States are joined to the data through
+    the German state name in the GeoJSON and the two-letter code in the data.
+
+    Args:
+        capacity: The per-state capacity table (must contain ``code`` and
+            ``value_col``).
+        out_dir: Directory to write the PNG into.
+        value_col: Column to shade by.
+        title: Chart title.
+        cmap_name: Matplotlib colormap name.
+        filename: Output file name.
+        geojson_path: Boundary file; defaults to the repo's bundeslaender file.
+    """
+    geo = json.loads(Path(geojson_path or _DEFAULT_GEOJSON).read_text(encoding="utf-8"))
+    value_by_code = dict(zip(capacity["code"], capacity[value_col], strict=False))
+    values = [v for v in value_by_code.values() if pd.notna(v)]
+    if not values:
+        return
+    norm = mcolors.Normalize(vmin=min(values), vmax=max(values))
+    cmap = plt.get_cmap(cmap_name)
+
+    fig, ax = plt.subplots(figsize=(6.6, 7.6), dpi=140)
+    xs: list[float] = []
+    ys: list[float] = []
+
+    for feature in geo["features"]:
+        german_name = feature["properties"].get("name")
+        code = STATE_CODE.get(german_name)
+        value = value_by_code.get(code)
+        face = cmap(norm(value)) if value is not None and pd.notna(value) else "#e9edf1"
+
+        rings = _exterior_rings(feature["geometry"])
+        for ring in rings:
+            ax.add_patch(MplPolygon(ring, closed=True, facecolor=face,
+                                    edgecolor="white", linewidth=0.6, zorder=2))
+            xs.extend(p[0] for p in ring)
+            ys.extend(p[1] for p in ring)
+
+        main = _largest_ring(rings)
+        if main and code:
+            cx = sum(p[0] for p in main) / len(main)
+            cy = sum(p[1] for p in main) / len(main)
+            ax.text(cx, cy, code, ha="center", va="center", fontsize=8,
+                    fontweight="bold", color=INK, zorder=3)
+
+    ax.set_xlim(min(xs) - 0.3, max(xs) + 0.3)
+    ax.set_ylim(min(ys) - 0.3, max(ys) + 0.3)
+    # Correct for latitude so Germany is not horizontally stretched.
+    mid_lat = (min(ys) + max(ys)) / 2
+    ax.set_aspect(1.0 / max(0.1, abs(math.cos(math.radians(mid_lat)))))
+    ax.axis("off")
+    ax.set_title(title, fontsize=12, fontweight="bold", color=INK)
+
+    sm = cm.ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+    cbar = fig.colorbar(sm, ax=ax, fraction=0.04, pad=0.02)
+    cbar.ax.tick_params(labelsize=8, colors=INK)
+
+    fig.tight_layout()
+    fig.savefig(out_dir / filename, bbox_inches="tight")
+    plt.close(fig)
+
+
 def render_all(
     national: pd.DataFrame,
     capacity: pd.DataFrame,
@@ -115,3 +217,4 @@ def render_all(
     render_national_trends(national, out)
     render_beds_per_100k(capacity, out)
     render_staffing(staffing, out)
+    render_choropleth(capacity, out)

@@ -11,6 +11,7 @@ the national trends, regional capacity, and staffing findings. Run with:
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import altair as alt
@@ -20,6 +21,10 @@ import streamlit as st
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED = ROOT / "data" / "processed"
 RESULTS = ROOT / "results"
+GEOJSON = ROOT / "data" / "geo" / "bundeslaender.geo.json"
+
+sys.path.insert(0, str(ROOT / "src"))
+from hospital_quality.reference import STATE_CODE  # noqa: E402
 
 st.set_page_config(page_title="German Hospital Capacity", page_icon="🏥", layout="wide")
 
@@ -95,6 +100,51 @@ chart = (
     .properties(height=360)
 )
 st.altair_chart(chart, use_container_width=True)
+
+
+# --- Regional map -----------------------------------------------------------
+
+st.subheader("The regional picture (2023)")
+
+_METRICS = {
+    "Beds per 100,000 inhabitants": ("beds_per_100k", "Blues", capacity),
+    "ICU beds per 100,000 inhabitants": ("icu_beds_per_100k", "Purples", capacity),
+    "Beds per nursing FTE (leaner = higher)": ("beds_per_nursing_fte", "Reds", staffing),
+}
+choice = st.radio("Colour the map by:", list(_METRICS), horizontal=True)
+value_col, scheme, source_df = _METRICS[choice]
+
+if GEOJSON.exists() and not source_df.empty:
+    geo = json.loads(GEOJSON.read_text(encoding="utf-8"))
+    value_by_code = dict(zip(source_df["code"], source_df[value_col], strict=False))
+    name_by_code = dict(zip(capacity["code"], capacity["name_en"], strict=False))
+    for feature in geo["features"]:
+        code = STATE_CODE.get(feature["properties"].get("name"))
+        feature["properties"]["metric"] = value_by_code.get(code)
+        feature["properties"]["state"] = name_by_code.get(code, feature["properties"].get("name"))
+
+    states = alt.Data(values=geo, format=alt.DataFormat(property="features", type="json"))
+    map_chart = (
+        alt.Chart(states)
+        .mark_geoshape(stroke="white", strokeWidth=0.6)
+        .encode(
+            color=alt.Color("properties.metric:Q", title=choice,
+                            scale=alt.Scale(scheme=scheme)),
+            tooltip=[
+                alt.Tooltip("properties.state:N", title="State"),
+                alt.Tooltip("properties.metric:Q", title=choice, format=".1f"),
+            ],
+        )
+        .project(type="mercator")
+        .properties(height=520)
+    )
+    map_col, table_col = st.columns([3, 2])
+    map_col.altair_chart(map_chart, use_container_width=True)
+    ranked = source_df[["name_en", value_col]].dropna().sort_values(value_col, ascending=False)
+    ranked.columns = ["State", choice]
+    table_col.dataframe(ranked, hide_index=True, use_container_width=True, height=520)
+else:
+    st.info("Boundary file not found; skipping the map.")
 
 
 # --- Regional capacity ------------------------------------------------------
