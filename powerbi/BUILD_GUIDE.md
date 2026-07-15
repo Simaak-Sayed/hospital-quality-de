@@ -11,9 +11,24 @@ data-analyst job ads ask for.
 > pull request. Shipping the clean CSVs plus these steps keeps the whole model
 > transparent and reproducible, and it is exactly how a real BI handover works.
 
-## 1. Load the data
+## 0. Fast path (recommended)
 
-In Power BI Desktop: **Home > Get data > Text/CSV**, and load all three files:
+Two ready-to-import, already-friendly tables are generated for you in this
+folder by `python scripts/export_powerbi.py`:
+
+| File | Table name | Grain |
+| --- | --- | --- |
+| `powerbi/state_indicators_2023.csv` | `States` | one row per federal state, capacity + staffing already joined |
+| `powerbi/national_trends.csv` | `NationalTrends` | one row per year (1991-2023) |
+
+Load those two, apply the theme (`powerbi/theme.json` via **View > Themes >
+Browse for themes**), and go straight to the visuals in section 3. No modelling
+needed because the state table is already denormalised.
+
+## 1. Load the data (detailed alternative)
+
+If you prefer to model it yourself, load the three source tables from
+`data/processed/` instead:
 
 | File | Table name | Grain |
 | --- | --- | --- |

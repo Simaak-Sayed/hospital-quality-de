@@ -87,7 +87,7 @@ DESTATIS .xlsx  ->  parse.py  ->  tidy long records  ->  SQLite (star-ish schema
 | Extract | `scripts/run_etl.py`, `src/hospital_quality/parse.py` | Reads the DESTATIS workbook's machine-readable sheets, handles German number formats and placeholder markers (a nil cell never silently becomes a zero) |
 | Model | `src/hospital_quality/build_db.py`, `sql` | Loads a long `observations` fact table and a `states` dimension (with population) into SQLite |
 | Analyse | `sql/queries/*.sql`, `src/hospital_quality/analysis.py` | Three reviewable SQL queries compute national trends, per-capita capacity, and staffing intensity; Python derives the headline numbers |
-| Present | `src/hospital_quality/charts.py`, `dashboard/app.py`, `powerbi/` | Static charts, an interactive Streamlit app, and a Power BI build guide |
+| Present | `src/hospital_quality/charts.py`, `dashboard/app.py`, `powerbi/` | Static charts, an interactive Streamlit app, and Power BI-ready tables (`powerbi/*.csv`), a theme (`powerbi/theme.json`), and a build guide |
 
 ### The data-cleaning decisions that mattered
 
